@@ -5,11 +5,11 @@ import {
   ManyToOne,
   OneToMany,
 } from 'typeorm'
-import { Category } from './category.entity'
-import { ArticleContent } from './article-content.entity'
+import { CategoryEntity } from './category.entity'
+import { ArticleContentEntity } from './article-content.entity'
 
 @Entity('article')
-export class Article {
+export class ArticleEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
@@ -25,9 +25,9 @@ export class Article {
   @Column({ name: 'create_by' })
   createBy: string
 
-  @ManyToOne(() => Category, (category) => category.articles)
-  category: Category
+  @ManyToOne(() => CategoryEntity, (category) => category.articles)
+  category: CategoryEntity
 
-  @OneToMany(() => ArticleContent, (content) => content.article)
-  contents: ArticleContent[]
+  @OneToMany(() => ArticleContentEntity, (content) => content.article)
+  contents: ArticleContentEntity[]
 }

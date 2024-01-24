@@ -1,14 +1,14 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm'
-import { Article } from './article.entity'
+import { ArticleEntity } from './article.entity'
 
 @Entity('category')
-export class Category {
+export class CategoryEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
   @Column({ type: 'varchar', length: 50 })
   name: string
 
-  @OneToMany(() => Article, (article) => article.category)
-  articles: Article[]
+  @OneToMany(() => ArticleEntity, (article) => article.category)
+  articles: ArticleEntity[]
 }

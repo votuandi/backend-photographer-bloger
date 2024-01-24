@@ -1,13 +1,13 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
-import { Article } from './article.entity'
+import { ArticleEntity } from './article.entity'
 
 @Entity('article_content')
-export class ArticleContent {
+export class ArticleContentEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @ManyToOne(() => Article, (article) => article.contents)
-  article: Article
+  @ManyToOne(() => ArticleEntity, (article) => article.contents)
+  article: ArticleEntity
 
   @Column()
   index: number
