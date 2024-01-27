@@ -49,12 +49,12 @@ export class CategoryService {
     }
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: string): Promise<number> {
     try {
-      await this.categoryRepository.delete(id)
-      return true
+      const result = await this.categoryRepository.delete(id)
+      return result.affected
     } catch (error) {
-      return false
+      return -1
     }
   }
 }

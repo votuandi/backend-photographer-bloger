@@ -20,6 +20,18 @@ export class ArticleService {
     }
   }
 
+  async findByCategoryId(categoryId: string): Promise<ArticleEntity[]> {
+    try {
+      const articles = await this.articleRepository.find({
+        where: { category: { id: categoryId } },
+        relations: ['category'], // If you want to include the category details in the result
+      })
+      return articles
+    } catch (error) {
+      return null
+    }
+  }
+
   async findAll(): Promise<ArticleEntity[] | null> {
     try {
       return await this.articleRepository.find({ relations: ['category'] })
@@ -51,12 +63,12 @@ export class ArticleService {
     }
   }
 
-  async remove(id: string): Promise<boolean> {
+  async remove(id: string): Promise<number> {
     try {
-      await this.articleRepository.delete(id)
-      return true
+      const result = await this.articleRepository.delete(id)
+      return result.affected
     } catch (error) {
-      return false
+      return -1
     }
   }
 }

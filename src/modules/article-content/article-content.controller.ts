@@ -1,4 +1,159 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Res, HttpStatus } from '@nestjs/common'
+import { ArticleContentService } from './article-content.service'
+import {
+  CreateArticleContentDto,
+  CreateArticleContentPayloadDto,
+  UpdateArticleContentDto,
+} from 'src/dto/article-content.dto'
+import { Response } from 'express'
+import { ArticleService } from '../article/article.service'
+import { RESPONSE_TYPE } from 'src/types/commom'
 
-@Controller('article-content')
-export class ArticleContentController {}
+@Controller('article-contents')
+export class ArticleContentController {
+  constructor(
+    private readonly articleContentService: ArticleContentService,
+    private readonly articleService: ArticleService,
+  ) {}
+
+  @Post()
+  async create(@Body() createArticleContentPayloadDto: CreateArticleContentPayloadDto, @Res() res: Response) {
+    const article = await this.articleService.findOne(createArticleContentPayloadDto.articleId)
+    if (article) {
+      const createArticleContentDto: CreateArticleContentDto = {
+        previous: createArticleContentPayloadDto.previous,
+        type: createArticleContentPayloadDto.type,
+        content: createArticleContentPayloadDto.content,
+        width: createArticleContentPayloadDto.width,
+        article: article,
+      }
+      const newArticleContent = await this.articleContentService.create(createArticleContentDto)
+      if (newArticleContent === null) {
+        const response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Internal Server Error',
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+      } else if (newArticleContent === undefined) {
+        const response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Create Article Content category failed',
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+      } else {
+        const response: RESPONSE_TYPE = {
+          status: true,
+          message: 'Created Article Content category successfully',
+          params: newArticleContent,
+        }
+        res.status(HttpStatus.CREATED).json(response)
+      }
+    } else {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Article not found',
+      }
+      res.status(HttpStatus.NOT_FOUND).json(response)
+    }
+  }
+
+  @Get()
+  async findAll(@Res() res: Response) {
+    const articleContents = await this.articleContentService.findAll()
+    if (Array.isArray(articleContents)) {
+      const response: RESPONSE_TYPE = {
+        status: true,
+        params: articleContents,
+      }
+      res.status(HttpStatus.OK).json(response)
+    } else {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Internal Server Error',
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    }
+  }
+
+  @Get('article/:articleId')
+  async findByArticleId(@Param('articleId') articleId: string, @Res() res: Response) {
+    const articles = await this.articleContentService.findByArticleId(articleId)
+    if (Array.isArray(articles)) {
+      const response: RESPONSE_TYPE = {
+        status: true,
+        params: articles,
+      }
+      res.status(HttpStatus.OK).json(response)
+    } else {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Internal Server Error',
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    }
+  }
+
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() res: Response) {
+    const articleContent = await this.articleContentService.findOne(id)
+    if (articleContent) {
+      const response: RESPONSE_TYPE = {
+        status: true,
+        params: articleContent,
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    } else {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Article Content not found',
+      }
+      res.status(HttpStatus.NOT_FOUND).json(response)
+    }
+  }
+
+  @Put(':id')
+  async update(
+    @Param('id') id: string,
+    @Body() updateArticleContentDto: UpdateArticleContentDto,
+    @Res() res: Response,
+  ) {
+    const articleContent = await this.articleContentService.update(id, updateArticleContentDto)
+    if (articleContent === null) {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Internal Server Error',
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    } else if (articleContent === undefined) {
+      const response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Article Content not found',
+      }
+      res.status(HttpStatus.NOT_FOUND).json(response)
+    } else {
+      const response: RESPONSE_TYPE = {
+        status: true,
+        params: articleContent,
+      }
+      res.status(HttpStatus.OK).json(response)
+    }
+  }
+
+  @Delete(':id')
+  async remove(@Param('id') id: string, @Res() res: Response) {
+    const success = await this.articleContentService.remove(id)
+    if (success === 1) {
+      const response: RESPONSE_TYPE = {
+        status: true,
+        message: `Deleted ${id}`,
+      }
+      res.status(HttpStatus.OK).json(response)
+    } else if (success === 0) {
+      const response: RESPONSE_TYPE = { status: false, message: 'Article content not found' }
+      res.status(HttpStatus.NOT_FOUND).json(response)
+    } else {
+      const response: RESPONSE_TYPE = { status: false, message: 'Internal Server Error' }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    }
+  }
+}

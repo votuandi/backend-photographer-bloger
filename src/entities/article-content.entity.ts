@@ -9,8 +9,8 @@ export class ArticleContentEntity {
   @ManyToOne(() => ArticleEntity, (article) => article.contents)
   article: ArticleEntity
 
-  @Column()
-  index: number
+  @Column({ nullable: true })
+  previous: string | null
 
   @Column()
   type: string
