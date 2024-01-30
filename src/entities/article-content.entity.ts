@@ -15,7 +15,7 @@ export class ArticleContentEntity {
   @Column()
   type: string
 
-  @Column()
+  @Column('text')
   content: string
 
   @Column()

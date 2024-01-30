@@ -13,12 +13,15 @@ export class ArticleContentService {
 
   async create(createArticleContentDto: CreateArticleContentDto): Promise<ArticleContentEntity | null> {
     try {
+      console.log('\n----------------------')
+      console.log('new Data:', createArticleContentDto)
+
       // Case previous is a content
       if (createArticleContentDto.previous) {
         console.log('Case previous is a content')
 
         // Find previous content
-        const previousContent = await this.articleContentRepository.findOne({
+        let previousContent = await this.articleContentRepository.findOne({
           where: { id: createArticleContentDto.previous, article: createArticleContentDto.article },
           relations: ['article'],
         })
@@ -32,7 +35,7 @@ export class ArticleContentService {
         if (previousContent) {
           // Case previous content is existed
           console.log('Case previous content is existed')
-          const currentNextOfPreviousContent = await this.articleContentRepository.findOne({
+          let currentNextOfPreviousContent = await this.articleContentRepository.findOne({
             where: { previous: previousContent.id, article: createArticleContentDto.article },
             relations: ['article'],
           })
@@ -40,10 +43,11 @@ export class ArticleContentService {
             // Case current next content of previous content is existed
             console.log('Case current next content of previous content is existed')
 
-            const newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+            let newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+            let savedNewArticleContent = await this.articleContentRepository.save(newArticleContent)
 
             try {
-              const oldNext: UpdateArticleContentDto = {
+              let oldNext: UpdateArticleContentDto = {
                 previous: newArticleContent.id,
                 type: currentNextOfPreviousContent.type,
                 content: currentNextOfPreviousContent.content,
@@ -55,13 +59,12 @@ export class ArticleContentService {
               return null
             }
 
-            const savedNewArticleContent = await this.articleContentRepository.save(newArticleContent)
             return savedNewArticleContent
           } else {
             // Case current next content of previous content is not existed
             console.log('Case THE LAST CONTENT')
 
-            const newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+            let newArticleContent = this.articleContentRepository.create(createArticleContentDto)
             return await this.articleContentRepository.save(newArticleContent)
           }
         } else {
@@ -73,39 +76,55 @@ export class ArticleContentService {
       } else {
         // Case previous is null (root)
         console.log('Case previous is null (root)')
-
-        const previousContent = await this.articleContentRepository.findOne({
-          where: { id: null, article: createArticleContentDto.article },
+        let oldRootContent = null
+        console.log('Set current root', oldRootContent)
+        oldRootContent = await this.articleContentRepository.findOne({
+          where: { previous: null, article: createArticleContentDto.article },
           relations: ['article'],
         })
-        if (previousContent) {
+        let findAll = await this.articleContentRepository.find({
+          where: { previous: null, article: createArticleContentDto.article },
+          relations: ['article'],
+        })
+        console.log('Find current root', oldRootContent)
+        console.log('findAll:', findAll)
+        oldRootContent = findAll.find((x) => x.previous === null)
+
+        if (oldRootContent) {
+          if (oldRootContent.previous) return null
           console.log('Case existed root content before')
 
           // Case existed root content before
           // -> Create new root
           // -> Edit old root -> old root's previous = new root's id
-          const newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+          let newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+          let savedNewArticleContent = await this.articleContentRepository.save(newArticleContent)
+          console.log('Create new root:', savedNewArticleContent)
 
           try {
-            const oldRoot: UpdateArticleContentDto = {
+            let oldRoot: UpdateArticleContentDto = {
               previous: newArticleContent.id,
-              type: previousContent.type,
-              content: previousContent.content,
-              width: previousContent.width,
-              article: previousContent.article,
+              type: oldRootContent.type,
+              content: oldRootContent.content,
+              width: oldRootContent.width,
+              article: oldRootContent.article,
             }
-            await this.articleContentRepository.update(previousContent.id, oldRoot)
+            console.log('Update old root', { id: oldRootContent.id, ...oldRoot })
+
+            await this.articleContentRepository.update(oldRootContent.id, oldRoot)
+            oldRootContent = null
           } catch (error) {
+            console.log('Error when update old root:', error)
+
             return null
           }
 
-          const savedNewArticleContent = await this.articleContentRepository.save(newArticleContent)
           return savedNewArticleContent
         } else {
           // Not yet have root -> create root
           console.log('// Not yet have root -> create root')
 
-          const newArticleContent = this.articleContentRepository.create(createArticleContentDto)
+          let newArticleContent = this.articleContentRepository.create(createArticleContentDto)
           return await this.articleContentRepository.save(newArticleContent)
         }
       }
@@ -118,7 +137,7 @@ export class ArticleContentService {
 
   async findByArticleId(articleId: string): Promise<ArticleContentEntity[]> {
     try {
-      const articleContent = await this.articleContentRepository.find({
+      let articleContent = await this.articleContentRepository.find({
         where: { article: { id: articleId } },
         relations: ['article'], // If you want to include the category details in the result
       })
@@ -176,12 +195,12 @@ export class ArticleContentService {
       // 3. last content
       // -> delete current
 
-      const currentContent = await this.articleContentRepository.findOne({
+      let currentContent = await this.articleContentRepository.findOne({
         where: { id },
         relations: ['article'],
       })
       if (currentContent) {
-        const currentNextContent = await this.articleContentRepository.findOne({
+        let currentNextContent = await this.articleContentRepository.findOne({
           where: { previous: id },
           relations: ['article'],
         })
@@ -189,7 +208,7 @@ export class ArticleContentService {
           if (currentContent.previous) {
             // case 2 CENTER
             try {
-              const oldNext: UpdateArticleContentDto = {
+              let oldNext: UpdateArticleContentDto = {
                 previous: currentContent.previous,
                 type: currentNextContent.type,
                 content: currentNextContent.content,
@@ -200,12 +219,12 @@ export class ArticleContentService {
             } catch (error) {
               return -1
             }
-            const result = await this.articleContentRepository.delete(id)
+            let result = await this.articleContentRepository.delete(id)
             return result.affected
           } else {
             // case 1 ROOT
             try {
-              const oldNext: UpdateArticleContentDto = {
+              let oldNext: UpdateArticleContentDto = {
                 previous: null,
                 type: currentNextContent.type,
                 content: currentNextContent.content,
@@ -216,12 +235,12 @@ export class ArticleContentService {
             } catch (error) {
               return -1
             }
-            const result = await this.articleContentRepository.delete(id)
+            let result = await this.articleContentRepository.delete(id)
             return result.affected
           }
         } else {
           // case 3 LAST CONTENT
-          const result = await this.articleContentRepository.delete(id)
+          let result = await this.articleContentRepository.delete(id)
           return result.affected
         }
       } else {

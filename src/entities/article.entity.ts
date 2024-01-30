@@ -1,10 +1,4 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  OneToMany,
-} from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm'
 import { CategoryEntity } from './category.entity'
 import { ArticleContentEntity } from './article-content.entity'
 
@@ -24,6 +18,9 @@ export class ArticleEntity {
 
   @Column({ name: 'create_by' })
   createBy: string
+
+  @Column({ type: 'boolean', default: true })
+  active: boolean
 
   @ManyToOne(() => CategoryEntity, (category) => category.articles)
   category: CategoryEntity

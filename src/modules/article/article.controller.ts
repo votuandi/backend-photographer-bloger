@@ -15,31 +15,32 @@ export class ArticleController {
 
   @Post()
   async create(@Body() createArticlePayloadDto: CreateArticlePayloadDto, @Res() res: Response) {
-    const category = await this.categoryService.findOne(createArticlePayloadDto.categoryId)
+    let category = await this.categoryService.findOne(createArticlePayloadDto.categoryId)
     if (category) {
-      const createTime = new Date()
-      const createArticleDto: CreateArticleDto = {
+      let createTime = new Date()
+      let createArticleDto: CreateArticleDto = {
         title: createArticlePayloadDto.title,
         shortDescription: createArticlePayloadDto.shortDescription,
         createBy: createArticlePayloadDto.createBy,
         createTime: createTime,
         category: category,
+        active: createArticlePayloadDto.active,
       }
-      const newArticle = await this.articleService.create(createArticleDto)
+      let newArticle = await this.articleService.create(createArticleDto)
       if (newArticle === null) {
-        const response: RESPONSE_TYPE = {
+        let response: RESPONSE_TYPE = {
           status: false,
           message: 'Internal Server Error',
         }
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
       } else if (newArticle === undefined) {
-        const response: RESPONSE_TYPE = {
+        let response: RESPONSE_TYPE = {
           status: false,
           message: 'Create article failed',
         }
         res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
       } else {
-        const response: RESPONSE_TYPE = {
+        let response: RESPONSE_TYPE = {
           status: true,
           message: 'Create article successfully',
           params: newArticle,
@@ -47,7 +48,7 @@ export class ArticleController {
         res.status(HttpStatus.CREATED).json(response)
       }
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Category not found',
       }
@@ -57,15 +58,15 @@ export class ArticleController {
 
   @Get('category/:categoryId')
   async findByCategoryId(@Param('categoryId') categoryId: string, @Res() res: Response) {
-    const articles = await this.articleService.findByCategoryId(categoryId)
+    let articles = await this.articleService.findByCategoryId(categoryId)
     if (Array.isArray(articles)) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: true,
         params: articles,
       }
       res.status(HttpStatus.OK).json(response)
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Internal Server Error',
       }
@@ -75,15 +76,15 @@ export class ArticleController {
 
   @Get()
   async findAll(@Res() res: Response) {
-    const articles = await this.articleService.findAll()
+    let articles = await this.articleService.findAll()
     if (Array.isArray(articles)) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: true,
         params: articles,
       }
       res.status(HttpStatus.OK).json(response)
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Internal Server Error',
       }
@@ -93,21 +94,21 @@ export class ArticleController {
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Res() res: Response) {
-    const article = await this.articleService.findOne(id)
+    let article = await this.articleService.findOne(id)
     if (article === null) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Internal Server Error',
       }
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
     } else if (article === undefined) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Article not found',
       }
       res.status(HttpStatus.NOT_FOUND).json(response)
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: true,
         params: article,
       }
@@ -121,32 +122,33 @@ export class ArticleController {
     @Body() updateArticlePayloadDto: UpdateArticlePayloadDto,
     @Res() res: Response,
   ) {
-    const article = await this.articleService.findOne(id)
+    let article = await this.articleService.findOne(id)
     if (article) {
-      const category = await this.categoryService.findOne(updateArticlePayloadDto.categoryId)
+      let category = await this.categoryService.findOne(updateArticlePayloadDto.categoryId)
       if (category) {
-        const updateArticleDto: UpdateArticleDto = {
+        let updateArticleDto: UpdateArticleDto = {
           title: updateArticlePayloadDto.title,
           shortDescription: updateArticlePayloadDto.shortDescription,
           category: category,
           createTime: article.createTime,
           createBy: article.createBy,
+          active: updateArticlePayloadDto.active,
         }
-        const newArticle = await this.articleService.update(id, updateArticleDto)
+        let newArticle = await this.articleService.update(id, updateArticleDto)
         if (newArticle === null) {
-          const response: RESPONSE_TYPE = {
+          let response: RESPONSE_TYPE = {
             status: false,
             message: 'Internal Server Error',
           }
           res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
         } else if (newArticle === undefined) {
-          const response: RESPONSE_TYPE = {
+          let response: RESPONSE_TYPE = {
             status: false,
             message: 'Article not found',
           }
           res.status(HttpStatus.NOT_FOUND).json(response)
         } else {
-          const response: RESPONSE_TYPE = {
+          let response: RESPONSE_TYPE = {
             status: true,
             message: 'Create article successfully!',
             params: newArticle,
@@ -154,14 +156,14 @@ export class ArticleController {
           res.status(HttpStatus.OK).json(response)
         }
       } else {
-        const response: RESPONSE_TYPE = {
+        let response: RESPONSE_TYPE = {
           status: false,
           message: 'Category not found',
         }
         res.status(HttpStatus.NOT_FOUND).json(response)
       }
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Article not found',
       }
@@ -171,21 +173,21 @@ export class ArticleController {
 
   @Delete(':id')
   async remove(@Param('id') id: string, @Res() res: Response) {
-    const success = await this.articleService.remove(id)
+    let success = await this.articleService.remove(id)
     if (success === 1) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: true,
         message: `Deleted ${id}`,
       }
       res.status(HttpStatus.OK).json(response)
     } else if (success === 0) {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Article not found',
       }
       res.status(HttpStatus.NOT_FOUND).json(response)
     } else {
-      const response: RESPONSE_TYPE = {
+      let response: RESPONSE_TYPE = {
         status: false,
         message: 'Internal Server Error',
       }

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateArticleDto, UpdateArticleDto } from 'src/dto/article.dto'
+import { ArticleContentEntity } from 'src/entities/article-content.entity'
 import { ArticleEntity } from 'src/entities/article.entity'
 import { Repository } from 'typeorm'
 
@@ -9,11 +10,13 @@ export class ArticleService {
   constructor(
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
+    @InjectRepository(ArticleContentEntity)
+    private readonly articleContentRepository: Repository<ArticleContentEntity>,
   ) {}
 
   async create(createArticleDto: CreateArticleDto): Promise<ArticleEntity | null> {
     try {
-      const article = this.articleRepository.create(createArticleDto)
+      let article = this.articleRepository.create(createArticleDto)
       return await this.articleRepository.save(article)
     } catch (error) {
       return null
@@ -22,7 +25,7 @@ export class ArticleService {
 
   async findByCategoryId(categoryId: string): Promise<ArticleEntity[]> {
     try {
-      const articles = await this.articleRepository.find({
+      let articles = await this.articleRepository.find({
         where: { category: { id: categoryId } },
         relations: ['category'], // If you want to include the category details in the result
       })
@@ -65,8 +68,21 @@ export class ArticleService {
 
   async remove(id: string): Promise<number> {
     try {
-      const result = await this.articleRepository.delete(id)
-      return result.affected
+      let article = await this.articleRepository.findOne({
+        where: { id },
+        relations: ['category'],
+      })
+      if (article) {
+        let articleContents = await this.articleContentRepository.find({
+          where: { article: { id: id } },
+          relations: ['article'], // If you want to include the category details in the result
+        })
+        articleContents.forEach(async (content) => {
+          await this.articleContentRepository.delete(content.id)
+        })
+        let result = await this.articleRepository.delete(id)
+        return result.affected
+      } else return 0
     } catch (error) {
       return -1
     }

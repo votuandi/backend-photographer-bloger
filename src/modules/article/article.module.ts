@@ -5,10 +5,12 @@ import { ArticleEntity } from 'src/entities/article.entity'
 import { ArticleController } from './article.controller'
 import { CategoryService } from '../category/category.service'
 import { CategoryEntity } from 'src/entities/category.entity'
+import { ArticleContentEntity } from 'src/entities/article-content.entity'
+import { ArticleContentService } from '../article-content/article-content.service'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ArticleEntity, CategoryEntity])],
+  imports: [TypeOrmModule.forFeature([ArticleEntity, CategoryEntity, ArticleContentEntity])],
   controllers: [ArticleController],
-  providers: [ArticleService, CategoryService],
+  providers: [ArticleService, CategoryService, ArticleContentService],
 })
 export class ArticleModule {}
