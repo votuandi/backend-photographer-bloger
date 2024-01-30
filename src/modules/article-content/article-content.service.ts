@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { CreateArticleContentDto, UpdateArticleContentDto } from 'src/dto/article-content.dto'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
-import { Repository } from 'typeorm'
+import { IsNull, Repository } from 'typeorm'
 
 @Injectable()
 export class ArticleContentService {
@@ -76,19 +76,11 @@ export class ArticleContentService {
       } else {
         // Case previous is null (root)
         console.log('Case previous is null (root)')
-        let oldRootContent = null
-        console.log('Set current root', oldRootContent)
-        oldRootContent = await this.articleContentRepository.findOne({
-          where: { previous: null, article: createArticleContentDto.article },
-          relations: ['article'],
-        })
-        let findAll = await this.articleContentRepository.find({
-          where: { previous: null, article: createArticleContentDto.article },
+        let oldRootContent = await this.articleContentRepository.findOne({
+          where: { previous: IsNull(), article: createArticleContentDto.article },
           relations: ['article'],
         })
         console.log('Find current root', oldRootContent)
-        console.log('findAll:', findAll)
-        oldRootContent = findAll.find((x) => x.previous === null)
 
         if (oldRootContent) {
           if (oldRootContent.previous) return null
@@ -246,8 +238,6 @@ export class ArticleContentService {
       } else {
         return 0
       }
-      // const result = await this.articleContentRepository.delete(id)
-      // return result.affected
     } catch (error) {
       return -1
     }
