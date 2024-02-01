@@ -19,6 +19,15 @@ export class ArticleEntity {
   @Column({ name: 'create_by' })
   createBy: string
 
+  @Column({ name: 'public_time' })
+  publicTime: Date
+
+  @Column({ type: 'varchar', length: '500' })
+  hashtag: Date
+
+  @Column({ type: 'varchar', length: '500', default: '/public/image/article/default.jpg' })
+  thumbnail: string
+
   @Column({ type: 'boolean', default: true })
   active: boolean
 
