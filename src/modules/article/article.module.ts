@@ -7,9 +7,10 @@ import { CategoryService } from '../category/category.service'
 import { CategoryEntity } from 'src/entities/category.entity'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
 import { ArticleContentService } from '../article-content/article-content.service'
+import { ConfigModule } from '@nestjs/config'
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ArticleEntity, CategoryEntity, ArticleContentEntity])],
+  imports: [ConfigModule.forRoot(), TypeOrmModule.forFeature([ArticleEntity, CategoryEntity, ArticleContentEntity])],
   controllers: [ArticleController],
   providers: [ArticleService, CategoryService, ArticleContentService],
 })

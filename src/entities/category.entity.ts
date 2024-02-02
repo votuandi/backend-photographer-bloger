@@ -13,10 +13,10 @@ export class CategoryEntity {
   active: boolean
 
   @Column({ type: 'varchar', length: 500, default: '/public/image/category/default.png' })
-  thumbnail: boolean
+  thumbnail: string
 
   @Column({ type: 'date', name: 'create_time' })
-  crateTime: boolean
+  crateTime: Date
 
   @OneToMany(() => ArticleEntity, (article) => article.category)
   articles: ArticleEntity[]

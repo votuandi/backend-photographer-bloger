@@ -1,9 +1,20 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Res, HttpStatus, Req, UseInterceptors } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  Res,
+  HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common'
 import { CategoryService } from './category.service'
 import { CreateCategoryDto, UpdateCategoryDto } from 'src/dto/category.dto'
 import { Response } from 'express'
-import { FileInterceptor, NoFilesInterceptor } from '@nestjs/platform-express'
-import { diskStorage } from 'multer'
+import { FileInterceptor } from '@nestjs/platform-express'
 import { RESPONSE_TYPE } from 'src/types/commom'
 
 @Controller('categories')
@@ -11,46 +22,41 @@ export class CategoryController {
   constructor(private readonly categoryService: CategoryService) {}
 
   @Post()
-  @UseInterceptors(NoFilesInterceptor())
-  async create(@Body() createCategoryDto: CreateCategoryDto, @Req() req: Request, @Res() res: Response) {
-    let newCategory = await this.categoryService.create(createCategoryDto)
-    if (newCategory === null) {
-      let response: RESPONSE_TYPE = {
-        status: false,
-        message: 'Internal Server Error',
+  @UseInterceptors(FileInterceptor('thumbnail'))
+  async create(
+    @UploadedFile() thumbnail: Express.Multer.File,
+    @Body() createCategoryDto: CreateCategoryDto,
+    @Res() res: Response,
+  ) {
+    if (thumbnail) {
+      let newCategory = await this.categoryService.create(createCategoryDto, thumbnail)
+      if (newCategory === null) {
+        let response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Internal Server Error',
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+      } else if (newCategory === undefined) {
+        let response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Create category failed',
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+      } else {
+        let response: RESPONSE_TYPE = {
+          status: true,
+          message: 'Create category successfully',
+          params: newCategory,
+        }
+        res.status(HttpStatus.CREATED).json(response)
       }
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
-    } else if (newCategory === undefined) {
-      let response: RESPONSE_TYPE = {
-        status: false,
-        message: 'Create category failed',
-      }
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
     } else {
       let response: RESPONSE_TYPE = {
-        status: true,
-        message: 'Create category successfully',
-        params: newCategory,
+        status: false,
+        message: 'Image not found',
       }
-      res.status(HttpStatus.CREATED).json(response)
+      res.status(HttpStatus.NOT_FOUND).json(response)
     }
-  }
-
-  @Post('/upload')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './uploads',
-        filename: (req, file, cb) => {
-          cb(null, `${file.originalname}`)
-        },
-      }),
-    }),
-  )
-  async uploadFile(@Req() req: Request) {
-    let formData = req.body as any as CreateCategoryDto
-    console.log(formData.name)
-    return 'OK'
   }
 
   @Get()

@@ -1,14 +1,19 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
+import { join } from 'path'
 import { CreateCategoryDto, UpdateCategoryDto } from 'src/dto/category.dto'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
 import { ArticleEntity } from 'src/entities/article.entity'
 import { CategoryEntity } from 'src/entities/category.entity'
+import { generateRandomString } from 'src/utils/helpers/common.helpers'
 import { Repository } from 'typeorm'
+import * as fs from 'fs'
 
 @Injectable()
 export class CategoryService {
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(CategoryEntity)
     private readonly categoryRepository: Repository<CategoryEntity>,
     @InjectRepository(ArticleEntity)
@@ -17,11 +22,26 @@ export class CategoryService {
     private readonly articleContentRepository: Repository<ArticleContentEntity>,
   ) {}
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<CategoryEntity | null> {
+  async create(createCategoryDto: CreateCategoryDto, thumbnail: Express.Multer.File): Promise<CategoryEntity | null> {
     try {
       console.log('DTO_CREATE_CATEGORY:', createCategoryDto)
-
-      let category = this.categoryRepository.create(createCategoryDto)
+      let createTime = new Date()
+      let savedThumbnailName = `cate_thumb_${createTime.getTime()}_${generateRandomString(10)}.${
+        thumbnail.originalname.split('.').reverse()[0]
+      }`
+      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+      try {
+        fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
+      } catch (error) {
+        console.log('Error when saving image: ', error)
+        return null
+      }
+      let newCategory = {
+        ...createCategoryDto,
+        crateTime: createTime,
+        thumbnail: savedThumbnailPath,
+      }
+      let category = this.categoryRepository.create(newCategory)
       return await this.categoryRepository.save(category)
     } catch (error) {
       console.log('ERROR_CREATE_CATEGORY:', error)
