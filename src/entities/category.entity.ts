@@ -15,8 +15,8 @@ export class CategoryEntity {
   @Column({ type: 'varchar', length: 500, default: '/public/image/category/default.png' })
   thumbnail: string
 
-  @Column({ type: 'date', name: 'create_time' })
-  crateTime: Date
+  @Column({ type: 'timestamp', name: 'create_time' })
+  createTime: Date
 
   @OneToMany(() => ArticleEntity, (article) => article.category)
   articles: ArticleEntity[]

@@ -38,8 +38,9 @@ export class CategoryService {
       }
       let newCategory = {
         ...createCategoryDto,
-        crateTime: createTime,
+        createTime: createTime,
         thumbnail: savedThumbnailPath,
+        active: createCategoryDto.active === 1
       }
       let category = this.categoryRepository.create(newCategory)
       return await this.categoryRepository.save(category)
@@ -52,7 +53,20 @@ export class CategoryService {
 
   async findAll(): Promise<CategoryEntity[] | null> {
     try {
-      return await this.categoryRepository.find()
+      let categoryList = await this.categoryRepository.find({
+        order: {
+          createTime: 'ASC'
+        }
+      })
+      let newCategoryList: CategoryEntity[] = []
+      categoryList.forEach((cate) => {
+        let newCategory : CategoryEntity = {
+          ...cate,
+          thumbnail: `${this.configService.get('API_HOST')}/${cate.thumbnail}`
+        }
+        newCategoryList.push(newCategory)
+      })
+      return newCategoryList
     } catch (error) {
       return null
     }

@@ -1,6 +1,6 @@
 export class CreateCategoryDto {
   readonly name: string
-  readonly active: boolean
+  readonly active: number
 }
 
 export class UpdateCategoryDto {
