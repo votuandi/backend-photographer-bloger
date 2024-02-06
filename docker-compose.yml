@@ -1,0 +1,15 @@
+version: '3.9'
+services:
+  my-sql:
+    image: mysql:8.0
+    ports:
+      - "3309:3306"
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_DATABASE: "bloger_db"
+      MYSQL_USER: "divt"
+      MYSQL_PASSWORD: "divt"
+    volumes:
+      - ./data/mysql:/var/lib/mysql
