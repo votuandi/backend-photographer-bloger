@@ -1,10 +1,23 @@
 import { CreateArticlePayloadDto, UpdateArticlePayloadDto } from './../../dto/article.dto'
-import { Controller, Get, Post, Body, Param, Put, Delete, HttpStatus, Res } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  HttpStatus,
+  Res,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common'
 import { ArticleService } from './article.service'
 import { CreateArticleDto, UpdateArticleDto } from 'src/dto/article.dto'
 import { Response } from 'express'
 import { CategoryService } from '../category/category.service'
 import { RESPONSE_TYPE } from 'src/types/commom'
+import { FileInterceptor } from '@nestjs/platform-express'
 
 @Controller('articles')
 export class ArticleController {
@@ -14,43 +27,64 @@ export class ArticleController {
   ) {}
 
   @Post()
-  async create(@Body() createArticlePayloadDto: CreateArticlePayloadDto, @Res() res: Response) {
-    let category = await this.categoryService.findOne(createArticlePayloadDto.categoryId)
-    if (category) {
-      let createTime = new Date()
-      let createArticleDto: CreateArticleDto = {
-        title: createArticlePayloadDto.title,
-        shortDescription: createArticlePayloadDto.shortDescription,
-        createBy: createArticlePayloadDto.createBy,
-        createTime: createTime,
-        category: category,
-        active: createArticlePayloadDto.active,
-      }
-      let newArticle = await this.articleService.create(createArticleDto)
-      if (newArticle === null) {
-        let response: RESPONSE_TYPE = {
-          status: false,
-          message: 'Internal Server Error',
+  @UseInterceptors(FileInterceptor('thumbnail'))
+  async create(
+    @UploadedFile() thumbnail: Express.Multer.File,
+    @Body() createArticlePayloadDto: CreateArticlePayloadDto,
+    @Res() res: Response,
+  ) {
+    console.log('CREATE ARTICLE')
+    console.log('DTO', createArticlePayloadDto)
+
+    if (thumbnail) {
+      let category = await this.categoryService.findOne(createArticlePayloadDto.categoryId)
+      if (category) {
+        let createTime = new Date()
+        let publicTime: Date = createArticlePayloadDto.publicTime
+          ? new Date(createArticlePayloadDto.publicTime)
+          : createTime
+        let createArticleDto: CreateArticleDto = {
+          title: createArticlePayloadDto.title,
+          shortDescription: createArticlePayloadDto.shortDescription,
+          createBy: createArticlePayloadDto.createBy,
+          createTime: createTime,
+          category: category,
+          active: createArticlePayloadDto.active === '1',
+          publicTime: publicTime,
+          hashtag: createArticlePayloadDto.hashtag,
         }
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
-      } else if (newArticle === undefined) {
-        let response: RESPONSE_TYPE = {
-          status: false,
-          message: 'Create article failed',
+        let newArticle = await this.articleService.create(createArticleDto, thumbnail)
+        if (newArticle === null) {
+          let response: RESPONSE_TYPE = {
+            status: false,
+            message: 'Internal Server Error',
+          }
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+        } else if (newArticle === undefined) {
+          let response: RESPONSE_TYPE = {
+            status: false,
+            message: 'Create article failed',
+          }
+          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+        } else {
+          let response: RESPONSE_TYPE = {
+            status: true,
+            message: 'Create article successfully',
+            params: newArticle,
+          }
+          res.status(HttpStatus.CREATED).json(response)
         }
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
       } else {
         let response: RESPONSE_TYPE = {
-          status: true,
-          message: 'Create article successfully',
-          params: newArticle,
+          status: false,
+          message: 'Category not found',
         }
-        res.status(HttpStatus.CREATED).json(response)
+        res.status(HttpStatus.NOT_FOUND).json(response)
       }
     } else {
       let response: RESPONSE_TYPE = {
         status: false,
-        message: 'Category not found',
+        message: 'Image not found',
       }
       res.status(HttpStatus.NOT_FOUND).json(response)
     }

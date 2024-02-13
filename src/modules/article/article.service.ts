@@ -1,24 +1,44 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
+import { join } from 'path'
 import { CreateArticleDto, UpdateArticleDto } from 'src/dto/article.dto'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
 import { ArticleEntity } from 'src/entities/article.entity'
+import { generateRandomString } from 'src/utils/helpers/common.helpers'
 import { Repository } from 'typeorm'
+import * as fs from 'fs'
 
 @Injectable()
 export class ArticleService {
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(ArticleEntity)
     private readonly articleRepository: Repository<ArticleEntity>,
     @InjectRepository(ArticleContentEntity)
     private readonly articleContentRepository: Repository<ArticleContentEntity>,
   ) {}
 
-  async create(createArticleDto: CreateArticleDto): Promise<ArticleEntity | null> {
+  async create(createArticleDto: CreateArticleDto, thumbnail: Express.Multer.File): Promise<ArticleEntity | null> {
     try {
-      let article = this.articleRepository.create(createArticleDto)
+      console.log(thumbnail)
+      console.log(createArticleDto)
+
+      let savedThumbnailName = `cate_thumb_${createArticleDto.createTime.getTime()}_${generateRandomString(10)}.${
+        thumbnail.originalname.split('.').reverse()[0]
+      }`
+      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+      try {
+        fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
+      } catch (error) {
+        console.log('Error when saving image: ', error)
+        return null
+      }
+      let article = this.articleRepository.create({ ...createArticleDto, thumbnail: savedThumbnailPath })
       return await this.articleRepository.save(article)
     } catch (error) {
+      console.log('ERROR:', error)
+
       return null
     }
   }

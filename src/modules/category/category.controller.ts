@@ -102,26 +102,42 @@ export class CategoryController {
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() updateCategoryDto: UpdateCategoryDto, @Res() res: Response) {
-    let category = await this.categoryService.update(id, updateCategoryDto)
-    if (category === null) {
-      let response: RESPONSE_TYPE = {
-        status: false,
-        message: 'Internal Server Error',
+  @UseInterceptors(FileInterceptor('thumbnail'))
+  async update(
+    @Param('id') id: string,
+    @UploadedFile() thumbnail: Express.Multer.File,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+    @Res() res: Response,
+  ) {
+    console.log(updateCategoryDto)
+
+    if (thumbnail) {
+      let category = await this.categoryService.update(id, updateCategoryDto, thumbnail)
+      if (category === null) {
+        let response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Internal Server Error',
+        }
+        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+      } else if (category === undefined) {
+        let response: RESPONSE_TYPE = {
+          status: false,
+          message: 'Category not found',
+        }
+        res.status(HttpStatus.NOT_FOUND).json(response)
+      } else {
+        let response: RESPONSE_TYPE = {
+          status: true,
+          params: category,
+        }
+        res.status(HttpStatus.OK).json(response)
       }
-      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
-    } else if (category === undefined) {
-      let response: RESPONSE_TYPE = {
-        status: false,
-        message: 'Category not found',
-      }
-      res.status(HttpStatus.NOT_FOUND).json(response)
     } else {
       let response: RESPONSE_TYPE = {
-        status: true,
-        params: category,
+        status: false,
+        message: 'Image not found',
       }
-      res.status(HttpStatus.OK).json(response)
+      res.status(HttpStatus.NOT_FOUND).json(response)
     }
   }
 

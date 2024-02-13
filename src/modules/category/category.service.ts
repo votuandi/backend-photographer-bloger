@@ -40,7 +40,7 @@ export class CategoryService {
         ...createCategoryDto,
         createTime: createTime,
         thumbnail: savedThumbnailPath,
-        active: createCategoryDto.active === 1
+        active: createCategoryDto.active === '1',
       }
       let category = this.categoryRepository.create(newCategory)
       return await this.categoryRepository.save(category)
@@ -55,14 +55,14 @@ export class CategoryService {
     try {
       let categoryList = await this.categoryRepository.find({
         order: {
-          createTime: 'ASC'
-        }
+          createTime: 'ASC',
+        },
       })
       let newCategoryList: CategoryEntity[] = []
       categoryList.forEach((cate) => {
-        let newCategory : CategoryEntity = {
+        let newCategory: CategoryEntity = {
           ...cate,
-          thumbnail: `${this.configService.get('API_HOST')}/${cate.thumbnail}`
+          thumbnail: `${this.configService.get('API_HOST')}/${cate.thumbnail}`,
         }
         newCategoryList.push(newCategory)
       })
@@ -80,11 +80,46 @@ export class CategoryService {
     }
   }
 
-  async update(id: string, updateCategoryDto: UpdateCategoryDto): Promise<CategoryEntity | null> {
+  async update(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+    thumbnail: Express.Multer.File,
+  ): Promise<CategoryEntity | null> {
     try {
-      await this.categoryRepository.update(id, updateCategoryDto)
+      console.log('DTO_UPDATE_CATEGORY', updateCategoryDto)
+      let currentCategory = await this.categoryRepository.findOne({ where: { id } })
+      if (!currentCategory) {
+        return null
+      }
+      let updateTime = new Date()
+      let savedThumbnailName = `cate_thumb_${updateTime.getTime()}_${generateRandomString(10)}.${
+        thumbnail.originalname.split('.').reverse()[0]
+      }`
+      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+      console.log('savedThumbnailPath', savedThumbnailPath)
+
+      try {
+        fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
+      } catch (error) {
+        console.log('Error when saving image: ', error)
+        return null
+      }
+      try {
+        await fs.promises.unlink(currentCategory.thumbnail)
+      } catch (error) {
+        console.log('ERROR DELETE OLD THUMBNAIL:', error)
+      }
+      let updatedCategory = {
+        name: updateCategoryDto.name,
+        active: updateCategoryDto.active === '1',
+        thumbnail: savedThumbnailPath,
+        createTime: currentCategory.createTime,
+      }
+      await this.categoryRepository.update(id, updatedCategory)
       return this.categoryRepository.findOne({ where: { id } })
     } catch (error) {
+      console.log('ERROR:', error)
+
       return null
     }
   }
