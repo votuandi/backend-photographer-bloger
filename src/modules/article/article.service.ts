@@ -57,7 +57,21 @@ export class ArticleService {
 
   async findAll(): Promise<ArticleEntity[] | null> {
     try {
-      return await this.articleRepository.find({ relations: ['category'] })
+      let articleList = await this.articleRepository.find({
+        relations: ['category'],
+        order: {
+          publicTime: 'ASC',
+        },
+      })
+      let newArticleList: ArticleEntity[] = []
+      articleList.forEach((atc) => {
+        let newArticle: ArticleEntity = {
+          ...atc,
+          thumbnail: `${this.configService.get('API_HOST')}/${atc.thumbnail}`,
+        }
+        newArticleList.push(newArticle)
+      })
+      return newArticleList
     } catch (error) {
       return null
     }
