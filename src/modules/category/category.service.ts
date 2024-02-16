@@ -25,6 +25,7 @@ export class CategoryService {
   async create(createCategoryDto: CreateCategoryDto, thumbnail: Express.Multer.File): Promise<CategoryEntity | null> {
     try {
       console.log('DTO_CREATE_CATEGORY:', createCategoryDto)
+
       let createTime = new Date()
       let savedThumbnailName = `cate_thumb_${createTime.getTime()}_${generateRandomString(10)}.${
         thumbnail.originalname.split('.').reverse()[0]
@@ -87,6 +88,8 @@ export class CategoryService {
   ): Promise<CategoryEntity | null> {
     try {
       console.log('DTO_UPDATE_CATEGORY', updateCategoryDto)
+      console.log('thumbnail', thumbnail)
+
       let currentCategory = await this.categoryRepository.findOne({ where: { id } })
       if (!currentCategory) {
         return null
@@ -98,7 +101,7 @@ export class CategoryService {
         let savedThumbnailName = `cate_thumb_${updateTime.getTime()}_${generateRandomString(10)}.${
           thumbnail.originalname.split('.').reverse()[0]
         }`
-        let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+        savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
         console.log('savedThumbnailPath', savedThumbnailPath)
         try {
           fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)

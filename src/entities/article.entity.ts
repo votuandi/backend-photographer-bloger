@@ -10,7 +10,7 @@ export class ArticleEntity {
   @Column()
   title: string
 
-  @Column({ name: 'short_description' })
+  @Column({ name: 'short_description', type: 'text' })
   shortDescription: string
 
   @Column({ name: 'create_time' })

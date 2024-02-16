@@ -109,8 +109,6 @@ export class CategoryController {
     @Body() updateCategoryDto: UpdateCategoryDto,
     @Res() res: Response,
   ) {
-    console.log(updateCategoryDto)
-
     let category = await this.categoryService.update(id, updateCategoryDto, thumbnail)
     if (category === null) {
       let response: RESPONSE_TYPE = {
