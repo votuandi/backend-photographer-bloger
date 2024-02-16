@@ -111,33 +111,25 @@ export class CategoryController {
   ) {
     console.log(updateCategoryDto)
 
-    if (thumbnail) {
-      let category = await this.categoryService.update(id, updateCategoryDto, thumbnail)
-      if (category === null) {
-        let response: RESPONSE_TYPE = {
-          status: false,
-          message: 'Internal Server Error',
-        }
-        res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
-      } else if (category === undefined) {
-        let response: RESPONSE_TYPE = {
-          status: false,
-          message: 'Category not found',
-        }
-        res.status(HttpStatus.NOT_FOUND).json(response)
-      } else {
-        let response: RESPONSE_TYPE = {
-          status: true,
-          params: category,
-        }
-        res.status(HttpStatus.OK).json(response)
-      }
-    } else {
+    let category = await this.categoryService.update(id, updateCategoryDto, thumbnail)
+    if (category === null) {
       let response: RESPONSE_TYPE = {
         status: false,
-        message: 'Image not found',
+        message: 'Internal Server Error',
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    } else if (category === undefined) {
+      let response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Category not found',
       }
       res.status(HttpStatus.NOT_FOUND).json(response)
+    } else {
+      let response: RESPONSE_TYPE = {
+        status: true,
+        params: category,
+      }
+      res.status(HttpStatus.OK).json(response)
     }
   }
 

@@ -1,4 +1,4 @@
-import { CreateArticlePayloadDto, UpdateArticlePayloadDto } from './../../dto/article.dto'
+import { CreateArticlePayloadDto } from './../../dto/article.dto'
 import {
   Controller,
   Get,
@@ -151,57 +151,32 @@ export class ArticleController {
   }
 
   @Put(':id')
+  @UseInterceptors(FileInterceptor('thumbnail'))
   async update(
     @Param('id') id: string,
-    @Body() updateArticlePayloadDto: UpdateArticlePayloadDto,
+    @UploadedFile() thumbnail: Express.Multer.File,
+    @Body() updateArticleDto: UpdateArticleDto,
     @Res() res: Response,
   ) {
-    let article = await this.articleService.findOne(id)
-    if (article) {
-      let category = await this.categoryService.findOne(updateArticlePayloadDto.categoryId)
-      if (category) {
-        let updateArticleDto: UpdateArticleDto = {
-          title: updateArticlePayloadDto.title,
-          shortDescription: updateArticlePayloadDto.shortDescription,
-          category: category,
-          createTime: article.createTime,
-          createBy: article.createBy,
-          active: updateArticlePayloadDto.active,
-        }
-        let newArticle = await this.articleService.update(id, updateArticleDto)
-        if (newArticle === null) {
-          let response: RESPONSE_TYPE = {
-            status: false,
-            message: 'Internal Server Error',
-          }
-          res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
-        } else if (newArticle === undefined) {
-          let response: RESPONSE_TYPE = {
-            status: false,
-            message: 'Article not found',
-          }
-          res.status(HttpStatus.NOT_FOUND).json(response)
-        } else {
-          let response: RESPONSE_TYPE = {
-            status: true,
-            message: 'Create article successfully!',
-            params: newArticle,
-          }
-          res.status(HttpStatus.OK).json(response)
-        }
-      } else {
-        let response: RESPONSE_TYPE = {
-          status: false,
-          message: 'Category not found',
-        }
-        res.status(HttpStatus.NOT_FOUND).json(response)
-      }
-    } else {
+    let article = await this.articleService.update(id, updateArticleDto, thumbnail)
+    if (article === null) {
       let response: RESPONSE_TYPE = {
         status: false,
-        message: 'Article not found',
+        message: 'Internal Server Error',
+      }
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json(response)
+    } else if (article === undefined) {
+      let response: RESPONSE_TYPE = {
+        status: false,
+        message: 'Category not found',
       }
       res.status(HttpStatus.NOT_FOUND).json(response)
+    } else {
+      let response: RESPONSE_TYPE = {
+        status: true,
+        params: article,
+      }
+      res.status(HttpStatus.OK).json(response)
     }
   }
 

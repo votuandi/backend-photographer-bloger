@@ -8,6 +8,7 @@ import { ArticleEntity } from 'src/entities/article.entity'
 import { generateRandomString } from 'src/utils/helpers/common.helpers'
 import { Repository } from 'typeorm'
 import * as fs from 'fs'
+import { CategoryEntity } from 'src/entities/category.entity'
 
 @Injectable()
 export class ArticleService {
@@ -17,6 +18,8 @@ export class ArticleService {
     private readonly articleRepository: Repository<ArticleEntity>,
     @InjectRepository(ArticleContentEntity)
     private readonly articleContentRepository: Repository<ArticleContentEntity>,
+    @InjectRepository(CategoryEntity)
+    private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
   async create(createArticleDto: CreateArticleDto, thumbnail: Express.Multer.File): Promise<ArticleEntity | null> {
@@ -24,10 +27,10 @@ export class ArticleService {
       console.log(thumbnail)
       console.log(createArticleDto)
 
-      let savedThumbnailName = `cate_thumb_${createArticleDto.createTime.getTime()}_${generateRandomString(10)}.${
+      let savedThumbnailName = `article_thumb_${createArticleDto.createTime.getTime()}_${generateRandomString(10)}.${
         thumbnail.originalname.split('.').reverse()[0]
       }`
-      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article', savedThumbnailName)
       try {
         fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
       } catch (error) {
@@ -88,14 +91,68 @@ export class ArticleService {
     }
   }
 
-  async update(id: string, updateArticleDto: UpdateArticleDto): Promise<ArticleEntity | undefined | null> {
+  async update(
+    id: string,
+    updateArticleDto: UpdateArticleDto,
+    thumbnail: Express.Multer.File | undefined,
+  ): Promise<ArticleEntity | undefined | null> {
     try {
-      await this.articleRepository.update(id, updateArticleDto)
-      return this.articleRepository.findOne({
-        where: { id },
-        relations: ['category'],
-      })
+      console.log('DTO_UPDATE_ARTICLE', updateArticleDto)
+
+      let currentArticle = await this.articleRepository.findOne({ where: { id } })
+      console.log('currentArticle', currentArticle)
+      if (!currentArticle) {
+        console.log('ERROR: CAN NOT FIND ARTICLE')
+        return null
+      }
+
+      let updatedCategory = await this.categoryRepository.findOne({ where: { id: updateArticleDto.categoryId } })
+      if (!updatedCategory) {
+        console.log('ERROR: CAN NOT FIND CATEGORY WITH ID = ', updateArticleDto.categoryId)
+
+        return null
+      }
+
+      let savedThumbnailPath = currentArticle.thumbnail
+
+      if (thumbnail) {
+        console.log('NEW THUMBNAIL', thumbnail)
+        console.log('DUOI', thumbnail.originalname.split('.').reverse()[0])
+
+        let updateTime = new Date()
+        let savedThumbnailName = `article_thumb_${updateTime.getTime()}_${generateRandomString(10)}.${
+          thumbnail.originalname.split('.').reverse()[0]
+        }`
+        savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article', savedThumbnailName)
+        console.log('savedThumbnailPath', savedThumbnailPath)
+        try {
+          fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
+        } catch (error) {
+          console.log('Error when saving image: ', error)
+          return null
+        }
+        try {
+          await fs.promises.unlink(currentArticle.thumbnail)
+        } catch (error) {
+          console.log('ERROR DELETE OLD THUMBNAIL:', error)
+        }
+      }
+
+      let updatedArticle = {
+        title: updateArticleDto.title,
+        shortDescription: updateArticleDto.shortDescription,
+        active: updateArticleDto.active === '1',
+        thumbnail: savedThumbnailPath,
+        createTime: currentArticle.createTime,
+        createBy: currentArticle.createBy,
+        publicTime: updateArticleDto.publicTime,
+        hashtag: updateArticleDto.hashtag,
+        category: updatedCategory,
+      }
+      await this.articleRepository.update(id, updatedArticle)
+      return this.articleRepository.findOne({ where: { id } })
     } catch (error) {
+      console.log('ERROR:', error)
       return null
     }
   }

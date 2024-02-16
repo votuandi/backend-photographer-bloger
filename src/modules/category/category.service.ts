@@ -83,7 +83,7 @@ export class CategoryService {
   async update(
     id: string,
     updateCategoryDto: UpdateCategoryDto,
-    thumbnail: Express.Multer.File,
+    thumbnail: Express.Multer.File | undefined,
   ): Promise<CategoryEntity | null> {
     try {
       console.log('DTO_UPDATE_CATEGORY', updateCategoryDto)
@@ -91,24 +91,28 @@ export class CategoryService {
       if (!currentCategory) {
         return null
       }
-      let updateTime = new Date()
-      let savedThumbnailName = `cate_thumb_${updateTime.getTime()}_${generateRandomString(10)}.${
-        thumbnail.originalname.split('.').reverse()[0]
-      }`
-      let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
-      console.log('savedThumbnailPath', savedThumbnailPath)
+      let savedThumbnailPath = currentCategory.thumbnail
 
-      try {
-        fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
-      } catch (error) {
-        console.log('Error when saving image: ', error)
-        return null
+      if (thumbnail) {
+        let updateTime = new Date()
+        let savedThumbnailName = `cate_thumb_${updateTime.getTime()}_${generateRandomString(10)}.${
+          thumbnail.originalname.split('.').reverse()[0]
+        }`
+        let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'category', savedThumbnailName)
+        console.log('savedThumbnailPath', savedThumbnailPath)
+        try {
+          fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
+        } catch (error) {
+          console.log('Error when saving image: ', error)
+          return null
+        }
+        try {
+          await fs.promises.unlink(currentCategory.thumbnail)
+        } catch (error) {
+          console.log('ERROR DELETE OLD THUMBNAIL:', error)
+        }
       }
-      try {
-        await fs.promises.unlink(currentCategory.thumbnail)
-      } catch (error) {
-        console.log('ERROR DELETE OLD THUMBNAIL:', error)
-      }
+
       let updatedCategory = {
         name: updateCategoryDto.name,
         active: updateCategoryDto.active === '1',
@@ -119,7 +123,6 @@ export class CategoryService {
       return this.categoryRepository.findOne({ where: { id } })
     } catch (error) {
       console.log('ERROR:', error)
-
       return null
     }
   }

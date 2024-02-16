@@ -10,8 +10,8 @@ import { ArticleContentService } from '../article-content/article-content.servic
 import { ConfigModule } from '@nestjs/config'
 
 @Module({
-  imports: [ConfigModule.forRoot(), TypeOrmModule.forFeature([ArticleEntity, CategoryEntity, ArticleContentEntity])],
+  imports: [ConfigModule.forRoot(), TypeOrmModule.forFeature([ArticleEntity, ArticleContentEntity, CategoryEntity])],
   controllers: [ArticleController],
-  providers: [ArticleService, CategoryService, ArticleContentService],
+  providers: [ArticleService, ArticleContentService, CategoryService],
 })
 export class ArticleModule {}

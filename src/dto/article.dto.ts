@@ -1,5 +1,4 @@
 import { CategoryEntity } from 'src/entities/category.entity'
-import { CreateCategoryDto } from './category.dto'
 
 export class CreateArticlePayloadDto {
   readonly title: string
@@ -22,18 +21,11 @@ export class CreateArticleDto {
   readonly active: boolean
 }
 
-export class UpdateArticlePayloadDto {
-  readonly title: string
-  readonly shortDescription: string
-  readonly categoryId: string
-  readonly active: boolean
-}
-
 export class UpdateArticleDto {
   readonly title: string
   readonly shortDescription: string
-  readonly createTime: Date
-  readonly createBy: string
-  readonly category: CreateCategoryDto
-  readonly active: boolean
+  readonly publicTime: Date
+  readonly hashtag: string
+  readonly categoryId: string
+  readonly active: '0' | '1'
 }
