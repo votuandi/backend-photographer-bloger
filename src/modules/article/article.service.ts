@@ -172,6 +172,11 @@ export class ArticleService {
           await this.articleContentRepository.delete(content.id)
         })
         let result = await this.articleRepository.delete(id)
+        try {
+          await fs.promises.unlink(article.thumbnail)
+        } catch (error) {
+          console.log('ERROR DELETE OLD THUMBNAIL:', error)
+        }
         return result.affected
       } else return 0
     } catch (error) {

@@ -150,6 +150,11 @@ export class CategoryService {
           })
         }
         let result = await this.categoryRepository.delete(id)
+        try {
+          await fs.promises.unlink(existedCategory.thumbnail)
+        } catch (error) {
+          console.log('ERROR DELETE OLD THUMBNAIL:', error)
+        }
         return result.affected
       } else return 0
     } catch (error) {
