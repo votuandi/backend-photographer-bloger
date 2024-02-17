@@ -1,20 +1,46 @@
 import { Injectable } from '@nestjs/common'
+import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
+import { join } from 'path'
 import { CreateArticleContentDto, UpdateArticleContentDto } from 'src/dto/article-content.dto'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
+import { generateRandomString } from 'src/utils/helpers/common.helpers'
 import { IsNull, Repository } from 'typeorm'
+import * as fs from 'fs'
 
 @Injectable()
 export class ArticleContentService {
   constructor(
+    private readonly configService: ConfigService,
     @InjectRepository(ArticleContentEntity)
     private readonly articleContentRepository: Repository<ArticleContentEntity>,
   ) {}
 
-  async create(createArticleContentDto: CreateArticleContentDto): Promise<ArticleContentEntity | null> {
+  async create(
+    createArticleContentDto: CreateArticleContentDto,
+    image: Express.Multer.File | undefined,
+  ): Promise<ArticleContentEntity | null> {
     try {
       console.log('\n----------------------')
       console.log('new Data:', createArticleContentDto)
+      if (createArticleContentDto.type === 'image') {
+        if (!image) return null
+        let now = new Date()
+        let savedThumbnailName = `article_content_${now.getTime()}_${generateRandomString(10)}.${
+          image.originalname.split('.').reverse()[0]
+        }`
+        let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article', savedThumbnailName)
+        try {
+          fs.writeFileSync(savedThumbnailPath, image.buffer)
+        } catch (error) {
+          console.log('Error when saving image: ', error)
+          return null
+        }
+        createArticleContentDto = {
+          ...createArticleContentDto,
+          content: savedThumbnailPath,
+        }
+      }
 
       // Case previous is a content
       if (createArticleContentDto.previous) {

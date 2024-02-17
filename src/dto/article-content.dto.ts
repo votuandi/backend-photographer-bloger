@@ -1,4 +1,4 @@
-import { CreateArticleDto } from './article.dto'
+import { ArticleEntity } from 'src/entities/article.entity'
 
 export class CreateArticleContentPayloadDto {
   readonly previous: string | null
@@ -13,7 +13,7 @@ export class CreateArticleContentDto {
   readonly type: string
   readonly content: string
   readonly width: string
-  readonly article: CreateArticleDto
+  readonly article: ArticleEntity
 }
 
 export class UpdateArticleContentPayloadDto {
@@ -29,5 +29,5 @@ export class UpdateArticleContentDto {
   readonly type: string
   readonly content: string
   readonly width: string
-  readonly article: CreateArticleDto
+  readonly article: ArticleEntity
 }

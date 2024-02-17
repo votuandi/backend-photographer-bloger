@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Res, HttpStatus } from '@nestjs/common'
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  Res,
+  HttpStatus,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common'
 import { ArticleContentService } from './article-content.service'
 import {
   CreateArticleContentDto,
@@ -8,6 +20,7 @@ import {
 import { Response } from 'express'
 import { ArticleService } from '../article/article.service'
 import { RESPONSE_TYPE } from 'src/types/commom'
+import { FileInterceptor } from '@nestjs/platform-express'
 
 @Controller('article-contents')
 export class ArticleContentController {
@@ -17,17 +30,22 @@ export class ArticleContentController {
   ) {}
 
   @Post()
-  async create(@Body() createArticleContentPayloadDto: CreateArticleContentPayloadDto, @Res() res: Response) {
+  @UseInterceptors(FileInterceptor('image'))
+  async create(
+    @UploadedFile() image: Express.Multer.File,
+    @Body() createArticleContentPayloadDto: CreateArticleContentPayloadDto,
+    @Res() res: Response,
+  ) {
     let article = await this.articleService.findOne(createArticleContentPayloadDto.articleId)
     if (article) {
       let createArticleContentDto: CreateArticleContentDto = {
-        previous: createArticleContentPayloadDto.previous,
+        previous: createArticleContentPayloadDto.previous.length === 0 ? null : createArticleContentPayloadDto.previous,
         type: createArticleContentPayloadDto.type,
         content: createArticleContentPayloadDto.content,
         width: createArticleContentPayloadDto.width,
         article: article,
       }
-      let newArticleContent = await this.articleContentService.create(createArticleContentDto)
+      let newArticleContent = await this.articleContentService.create(createArticleContentDto, image)
       if (newArticleContent === null) {
         let response: RESPONSE_TYPE = {
           status: false,
