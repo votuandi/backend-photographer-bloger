@@ -155,11 +155,19 @@ export class ArticleContentService {
 
   async findByArticleId(articleId: string): Promise<ArticleContentEntity[]> {
     try {
-      let articleContent = await this.articleContentRepository.find({
+      let articleContents = await this.articleContentRepository.find({
         where: { article: { id: articleId } },
         relations: ['article'], // If you want to include the category details in the result
       })
-      return articleContent
+      articleContents.forEach((content, index) => {
+        if (content.type === 'image') {
+          articleContents[index] = {
+            ...content,
+            content: `${this.configService.get('API_HOST')}/${content.content}`,
+          }
+        }
+      })
+      return articleContents
     } catch (error) {
       return null
     }
