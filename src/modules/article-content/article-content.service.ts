@@ -2,11 +2,16 @@ import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { InjectRepository } from '@nestjs/typeorm'
 import { join } from 'path'
-import { CreateArticleContentDto, UpdateArticleContentDto } from 'src/dto/article-content.dto'
+import {
+  CreateArticleContentDto,
+  UpdateArticleContentDto,
+  UpdateArticleContentPayloadDto,
+} from 'src/dto/article-content.dto'
 import { ArticleContentEntity } from 'src/entities/article-content.entity'
 import { generateRandomString } from 'src/utils/helpers/common.helpers'
 import { IsNull, Repository } from 'typeorm'
 import * as fs from 'fs'
+import { ArticleEntity } from 'src/entities/article.entity'
 
 @Injectable()
 export class ArticleContentService {
@@ -14,6 +19,8 @@ export class ArticleContentService {
     private readonly configService: ConfigService,
     @InjectRepository(ArticleContentEntity)
     private readonly articleContentRepository: Repository<ArticleContentEntity>,
+    @InjectRepository(ArticleEntity)
+    private readonly articleRepository: Repository<ArticleEntity>,
   ) {}
 
   async create(
@@ -194,9 +201,18 @@ export class ArticleContentService {
 
   async update(
     id: string,
-    updateArticleContentDto: UpdateArticleContentDto,
+    updateArticleContentPayloadDto: UpdateArticleContentPayloadDto,
   ): Promise<ArticleContentEntity | undefined | null> {
     try {
+      let article = await this.articleRepository.findOne({ where: { id: updateArticleContentPayloadDto.articleId } })
+      if (!article) return null
+      let updateArticleContentDto: UpdateArticleContentDto = {
+        previous: updateArticleContentPayloadDto.previous.length === 0 ? null : updateArticleContentPayloadDto.previous,
+        type: updateArticleContentPayloadDto.type,
+        content: updateArticleContentPayloadDto.content,
+        width: updateArticleContentPayloadDto.type,
+        article: article,
+      }
       await this.articleContentRepository.update(id, updateArticleContentDto)
       return this.articleContentRepository.findOne({
         where: { id },

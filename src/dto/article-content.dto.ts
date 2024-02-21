@@ -17,7 +17,7 @@ export class CreateArticleContentDto {
 }
 
 export class UpdateArticleContentPayloadDto {
-  readonly previous: string | null
+  readonly previous: string
   readonly type: string
   readonly content: string
   readonly width: string

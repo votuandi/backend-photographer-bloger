@@ -16,6 +16,7 @@ import {
   CreateArticleContentDto,
   CreateArticleContentPayloadDto,
   UpdateArticleContentDto,
+  UpdateArticleContentPayloadDto,
 } from 'src/dto/article-content.dto'
 import { Response } from 'express'
 import { ArticleService } from '../article/article.service'
@@ -132,10 +133,12 @@ export class ArticleContentController {
   @Put(':id')
   async update(
     @Param('id') id: string,
-    @Body() updateArticleContentDto: UpdateArticleContentDto,
+    @Body() updateArticleContentPayloadDto: UpdateArticleContentPayloadDto,
     @Res() res: Response,
   ) {
-    let articleContent = await this.articleContentService.update(id, updateArticleContentDto)
+    console.log('updateArticleContentDto', updateArticleContentPayloadDto)
+
+    let articleContent = await this.articleContentService.update(id, updateArticleContentPayloadDto)
     if (articleContent === null) {
       let response: RESPONSE_TYPE = {
         status: false,
