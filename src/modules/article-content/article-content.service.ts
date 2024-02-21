@@ -210,7 +210,7 @@ export class ArticleContentService {
         previous: updateArticleContentPayloadDto.previous.length === 0 ? null : updateArticleContentPayloadDto.previous,
         type: updateArticleContentPayloadDto.type,
         content: updateArticleContentPayloadDto.content,
-        width: updateArticleContentPayloadDto.type,
+        width: updateArticleContentPayloadDto.width,
         article: article,
       }
       await this.articleContentRepository.update(id, updateArticleContentDto)

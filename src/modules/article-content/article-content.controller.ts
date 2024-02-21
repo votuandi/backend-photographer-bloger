@@ -15,7 +15,6 @@ import { ArticleContentService } from './article-content.service'
 import {
   CreateArticleContentDto,
   CreateArticleContentPayloadDto,
-  UpdateArticleContentDto,
   UpdateArticleContentPayloadDto,
 } from 'src/dto/article-content.dto'
 import { Response } from 'express'
@@ -131,11 +130,15 @@ export class ArticleContentController {
   }
 
   @Put(':id')
+  @UseInterceptors(FileInterceptor('image'))
   async update(
     @Param('id') id: string,
+    @UploadedFile() image: Express.Multer.File,
     @Body() updateArticleContentPayloadDto: UpdateArticleContentPayloadDto,
     @Res() res: Response,
   ) {
+    console.log('id', id)
+
     console.log('updateArticleContentDto', updateArticleContentPayloadDto)
 
     let articleContent = await this.articleContentService.update(id, updateArticleContentPayloadDto)
