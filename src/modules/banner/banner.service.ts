@@ -139,7 +139,18 @@ export class BannerService {
 
   async remove(id: string): Promise<number> {
     try {
-      console.log(id)
+      let existedBanner = await this.bannerRepository.findOne({
+        where: { id },
+      })
+      if (existedBanner) {
+        let result = await this.bannerRepository.delete(id)
+        try {
+          await fs.promises.unlink(existedBanner.path)
+        } catch (error) {
+          console.log('ERROR DELETE BANNER IMAGE:', error)
+        }
+        return result.affected
+      }
     } catch (error) {
       console.log(error)
       return -1

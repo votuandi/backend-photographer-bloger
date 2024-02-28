@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common'
 // import * as cors from 'cors'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import path from 'path'
-// import * as fs çççfrom 'fs'
+// import * as fs from 'fs'
 // import * as https from 'https'
 
 declare const module: any
