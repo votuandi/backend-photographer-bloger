@@ -6,12 +6,14 @@ import { ArticleModule } from './modules/article/article.module'
 import { ArticleContentModule } from './modules/article-content/article-content.module'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { ConfigService, ConfigModule } from '@nestjs/config'
+import { BannerModule } from './modules/banner/banner.module'
 
 @Module({
   imports: [
     CategoryModule,
     ArticleModule,
     ArticleContentModule,
+    BannerModule,
     ConfigModule.forRoot(),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

@@ -4,17 +4,17 @@ import { ValidationPipe } from '@nestjs/common'
 // import * as cors from 'cors'
 import { NestExpressApplication } from '@nestjs/platform-express'
 import path from 'path'
-import * as fs from 'fs'
-import * as https from 'https'
+// import * as fs çççfrom 'fs'
+// import * as https from 'https'
 
 declare const module: any
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    httpsOptions: {
-      key: fs.readFileSync('./path/to/private.key'),
-      cert: fs.readFileSync('./path/to/certificate.crt'),
-    },
+    // httpsOptions: {
+    //   key: fs.readFileSync('./private.key'),
+    //   cert: fs.readFileSync('./bundle.crt'),
+    // },
   })
   app.useGlobalPipes(new ValidationPipe())
   app.enableCors({
