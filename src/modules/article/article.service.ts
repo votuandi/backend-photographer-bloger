@@ -30,6 +30,10 @@ export class ArticleService {
       let savedThumbnailName = `article_thumb_${createArticleDto.createTime.getTime()}_${generateRandomString(10)}.${
         thumbnail.originalname.split('.').reverse()[0]
       }`
+      const folderPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article')
+      if (!fs.existsSync(folderPath)) {
+        fs.mkdirSync(folderPath, { recursive: true })
+      }
       let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article', savedThumbnailName)
       try {
         fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
@@ -126,6 +130,10 @@ export class ArticleService {
         savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article', savedThumbnailName)
         console.log('savedThumbnailPath', savedThumbnailPath)
         try {
+          const folderPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'article')
+          if (!fs.existsSync(folderPath)) {
+            fs.mkdirSync(folderPath, { recursive: true })
+          }
           fs.writeFileSync(savedThumbnailPath, thumbnail.buffer)
         } catch (error) {
           console.log('Error when saving image: ', error)

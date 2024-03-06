@@ -26,6 +26,10 @@ export class BannerService {
       }`
       let savedThumbnailPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'banner', savedImageName)
       try {
+        const folderPath = join(this.configService.get('MEDIA_UPLOAD_PATH'), 'banner')
+        if (!fs.existsSync(folderPath)) {
+          fs.mkdirSync(folderPath, { recursive: true })
+        }
         fs.writeFileSync(savedThumbnailPath, image.buffer)
       } catch (error) {
         console.log('Error when saving image: ', error)

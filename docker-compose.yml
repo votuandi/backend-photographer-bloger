@@ -31,6 +31,8 @@ services:
       - API_HOST=http://127.0.0.1:8080
     depends_on:
       - mysql  # Ensure MySQL is running before starting the NestJS app
+    volumes:
+      - ./data/public:/user/src/be-app/public # Mount the volume to the desired directory
 
 networks:
   my-network:  # Create a network for service communication
